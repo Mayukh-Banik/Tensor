@@ -372,7 +372,7 @@ T Tensor<T>::getIndex(const uint64_t index)
 		throw std::invalid_argument("Index greater than number of elements");
 	}
 	T val;
-	cudaError_t err = cudaMemcpy(this->buf + index, &val, sizeof(T), cudaMemcpyDeviceToHost);
+	cudaError_t err = cudaMemcpy(&val, this->buf + index, this->itemsize, cudaMemcpyDeviceToHost);
 	if (err != cudaSuccess)
 	{
 		throw std::runtime_error(cudaGetErrorString(err));
@@ -387,7 +387,7 @@ T Tensor<T>::setIndex(const uint64_t index, T value)
 	{
 		throw std::invalid_argument("Index greater than number of elements");
 	}
-	cudaError_t err = cudaMemcpy(this->buf + index, &value, sizeof(T), cudaMemcpyHostToDevice);
+	cudaError_t err = cudaMemcpy(this->buf + index, &value, this->itemsize, cudaMemcpyHostToDevice);
 	if (err != cudaSuccess)
 	{
 		throw std::runtime_error(cudaGetErrorString(err));

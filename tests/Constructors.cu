@@ -76,3 +76,15 @@ TEST(Scalar_Constructor, stackAllocation)
 {
 	EXPECT_NO_THROW(Tensor<double> x = Tensor<double>(2));
 }
+
+TEST(Scalar_Constructor, inBoundSetting)
+{
+	double y = 2;
+	Tensor<double> x = Tensor<double>(y);
+	EXPECT_NO_THROW(x.getIndex(0));
+	EXPECT_EQ(y, x.getIndex(0));
+	EXPECT_ANY_THROW(x.getIndex(1));
+	EXPECT_NO_THROW(x.setIndex(0, 1));
+	EXPECT_EQ(3, x.setIndex(0, 3));
+	EXPECT_ANY_THROW(x.setIndex(5, 5));
+}
