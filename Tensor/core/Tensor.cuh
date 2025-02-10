@@ -57,16 +57,23 @@ public:
 	} cudaProperties;
 
 	/**
-	 * Only sets the device properties, everything else must be done manually
+	 * Creates an empty Tensor. every value is set to 0.
 	 */
 	Tensor();
 
+	/**
+	 * Creates a scalar Tensor.
+	 * @param value Data type and scalar value of Tensor that will be created
+	 */
 	Tensor(T value);
 
 	/**
-	 * Allocates an empty array with size of shape
+	 * Creates a Tensor with dimensions. Uninitialized
+	 * @param shape array of shape to create
+	 * @param ndim how much of shape to look at. [0, ndim]
 	 */
 	Tensor(const uint64_t *shape, const uint64_t ndim);
+	
 	/**
 	 * Shape from vector
 	 */
@@ -76,9 +83,6 @@ public:
 	 */
 	Tensor(const std::vector<T> &values);
 	Tensor(const std::vector<std::vector<T>> &values);
-	/**
-	 * Copying over arrays with ndim > 3 use raw pointers
-	 */
 	Tensor(const T *values, const uint64_t *shape, const uint64_t ndim);
 	Tensor(const T *values, const std::vector<uint64_t> &shape);
 	~Tensor() noexcept;
@@ -166,15 +170,16 @@ Tensor<T>::Tensor(const uint64_t *shape, const uint64_t ndim)
 	this->shape = (uint64_t *)malloc(sizeof(*shape) * ndim);
 	this->strides = (uint64_t *)malloc(sizeof(*shape) * ndim);
 	this->elementCount = 1;
+	this->ndim = ndim;
 	for (uint64_t i = 0; i < ndim; i++)
 	{
 		this->elementCount = this->elementCount * shape[i];
 		this->shape[i] = shape[i];
-		this->strides[i] = 1 * this->itemsize;
-		for (uint64_t j = i; j < ndim; j++)
-		{
-			this->strides[i] = this->strides[i] * shape[j];
-		}
+	}
+	this->strides[ndim - 1] = this->itemsize;
+	for (int64_t i = ndim - 2; i >= 0; i--)
+	{
+		this->strides[i] = this->strides[i + 1] * this->shape[i + 1];
 	}
 	this->len = this->elementCount * this->itemsize;
 	cudaError_t err = cudaMalloc((void **)&this->buf, this->len);
@@ -200,11 +205,11 @@ Tensor<T>::Tensor(const std::vector<uint64_t> &shape)
 	{
 		this->shape[i] = shape[i];
 		this->elementCount *= shape[i];
-		this->strides[i] = 1 * this->itemsize;
-		for (uint64_t j = i; j < this->ndim; j++)
-		{
-			this->strides[i] = this->strides[i] * shape[j];
-		}
+	}
+	this->strides[ndim - 1] = this->itemsize;
+	for (int64_t i = ndim - 2; i >= 0; i--)
+	{
+		this->strides[i] = this->strides[i + 1] * this->shape[i + 1];
 	}
 	this->len = this->elementCount * this->itemsize;
 	cudaError_t err = cudaMalloc((void **)&this->buf, this->len);
