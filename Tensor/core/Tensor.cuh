@@ -76,13 +76,12 @@ public:
 	
 	/**
 	 * Shape from vector
+	 * @todo Fix ambiguity with values
 	 */
 	Tensor(const std::vector<uint64_t> &shape);
 	/**
 	 *
 	 */
-	Tensor(const std::vector<T> &values);
-	Tensor(const std::vector<std::vector<T>> &values);
 	Tensor(const T *values, const uint64_t *shape, const uint64_t ndim);
 	Tensor(const T *values, const std::vector<uint64_t> &shape);
 	~Tensor() noexcept;
@@ -217,37 +216,6 @@ Tensor<T>::Tensor(const std::vector<uint64_t> &shape)
 	{
 		throw std::runtime_error(cudaGetErrorString(err));
 	}
-}
-
-template <typename T>
-Tensor<T>::Tensor(const std::vector<T> &values)
-{
-}
-
-template <typename T>
-Tensor<T>::Tensor(const std::vector<std::vector<T>> &values)
-{
-	if (values.empty() || values[0].empty())
-	{
-		throw std::invalid_argument("");
-	}
-	for (uint64_t i = 0; i < values.size(); i++)
-	{
-		if (values[i].size() != values[0].size())
-		{
-			throw std::runtime_error("All rows must be same length");
-		}
-	}
-	this->elementCount = values.size() * values[0].size();
-	this->shape = (uint64_t *)malloc(sizeof(uint64_t) * 2);
-	this->strides = (uint64_t *)malloc(sizeof(uint64_t) * 2);
-	this->shape[0] = values.size();
-	this->shape[1] = values[0].size();
-	this->strides[0] = values[0].size() * this->itemsize;
-	this->strides[1] = this->itemsize;
-	this->ndim = 2;
-	this->len = this->elementCount * this->itemsize;
-	setDeviceProperties();
 }
 
 template <typename T>
