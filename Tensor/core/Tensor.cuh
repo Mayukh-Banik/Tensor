@@ -43,6 +43,8 @@ public:
 	// Number of numbers in Tensor
 	uint64_t elementCount;
 
+	bool isScalar = false;
+
 	/**
 	 * Properties of current CUDA device
 	 */
@@ -156,6 +158,7 @@ Tensor<T>::Tensor(T value)
 	{
 		throw std::runtime_error(cudaGetErrorString(err));
 	}
+	this->isScalar = true;
 }
 
 template <typename T>
